@@ -7,26 +7,20 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
+            margin: 20px;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f5f5f5;
         }
         .container {
-            width: 600px;
+            max-width: 500px;
+            margin: auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
         }
-        h1 {
+        .container h1 {
             text-align: center;
             font-size: 24px;
-            font-weight: bold;
         }
         .form-group {
             margin-bottom: 15px;
@@ -34,6 +28,7 @@
         .form-group label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         .form-group input {
             width: 100%;
@@ -44,14 +39,10 @@
         }
         .result {
             margin-top: 20px;
-            font-size: 14px;
-        }
-        .result p {
-            margin: 5px 0;
-        }
-        .result #positionAmount {
-            color: red;
-            font-weight: bold;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -104,8 +95,8 @@
             const positionAmount = positionSize * entryPrice;
 
             // 更新结果
-            positionSizeDisplay.textContent = Number.isInteger(positionSize) ? positionSize : positionSize.toFixed(8);
-            positionAmountDisplay.textContent = Number.isInteger(positionAmount) ? positionAmount : positionAmount.toFixed(8);
+            positionSizeDisplay.textContent = Number.isInteger(positionSize) ? positionSize.toFixed(0) : positionSize.toFixed(4);
+            positionAmountDisplay.textContent = Number.isInteger(positionAmount) ? positionAmount.toFixed(0) : positionAmount.toFixed(4);
         }
 
         // 添加事件监听器
