@@ -9,10 +9,6 @@
             font-family: Arial, sans-serif;
             margin: 20px;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             background-color: #f5f5f5;
         }
         .container {
@@ -31,13 +27,16 @@
         }
         .form-group {
             margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .form-group label {
-            display: block;
-            margin-bottom: 5px;
+            flex: 1;
+            margin-right: 10px;
         }
         .form-group input {
-            width: 100%;
+            flex: 2;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 3px;
@@ -109,8 +108,8 @@
             const positionAmount = positionSize * entryPrice;
 
             // 更新结果
-            positionSizeDisplay.textContent = positionSize.toFixed(4);
-            positionAmountDisplay.textContent = positionAmount.toFixed(4);
+            positionSizeDisplay.textContent = positionSize.toFixed(8);
+            positionAmountDisplay.textContent = positionAmount.toFixed(8);
         }
 
         // 添加事件监听器
