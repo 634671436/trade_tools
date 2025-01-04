@@ -326,15 +326,15 @@
             <div class="result-section">
                 <div class="section-title">止盈价格</div>
                 <div class="result-item">
-                    <span class="result-label">止盈点 1 (RR: <span id="rr1Display">1.5</span>)</span>
+                    <span class="result-label">止盈点 1 (RR: <span id="rr1Display">1.0</span>)</span>
                     <span class="result-value" id="tp1">-</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">止盈点 2 (RR: <span id="rr2Display">2.0</span>)</span>
+                    <span class="result-label">止盈点 2 (RR: <span id="rr2Display">1.5</span>)</span>
                     <span class="result-value" id="tp2">-</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">止盈点 3 (RR: <span id="rr3Display">3.0</span>)</span>
+                    <span class="result-label">止盈点 3 (RR: <span id="rr3Display">2.0</span>)</span>
                     <span class="result-value" id="tp3">-</span>
                 </div>
             </div>
@@ -349,7 +349,9 @@
                 if (window.positionCalculator) {
                     return window.positionCalculator;
                 }
+                this.storageKey = 'positionCalculatorCache';
                 this.initializeElements();
+                this.loadCache(); // 加载缓存
                 this.initializeEventListeners();
                 this.updateRRDisplays();
                 this.calculate();
@@ -396,12 +398,39 @@
                     console.error('Error initializing elements:', error);
                 }
             }
+		// 加载缓存
+    	loadCache() {
+        	try {
+            	const cachedData = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+            	Object.entries(this.inputs).forEach(([key, input]) => {
+                	if (cachedData[key]) {
+                    	input.value = cachedData[key];
+                	}
+            	});
+        	} catch (error) {
+            	console.error('加载缓存失败:', error);
+        	}
+    	}
+
+		// 保存到缓存
+    	saveCache() {
+        	try {
+            	const dataToCache = {};
+            	Object.entries(this.inputs).forEach(([key, input]) => {
+                	dataToCache[key] = input.value;
+            	});
+            	localStorage.setItem(this.storageKey, JSON.stringify(dataToCache));
+        	} catch (error) {
+            	console.error('保存缓存失败:', error);
+        	}
+    	}
 
             initializeEventListeners() {
                 try {
                     const handleInput = () => {
                         this.updateRRDisplays();
                         this.calculate();
+						this.saveCache(); // 每次输入变化时保存数据
                     };
 
                     // 为所有输入添加事件监听器
@@ -417,11 +446,11 @@
             }
 
             updateRRDisplays() {
-    ['rr1', 'rr2', 'rr3'].forEach(key => {
-        const value = this.inputs[key].value || (key === 'rr1' ? 1 : key === 'rr2' ? 1.5 : 2);
-        this.displays[key].textContent = parseFloat(value).toFixed(1);
-    });
-}
+    			['rr1', 'rr2', 'rr3'].forEach(key => {
+        			const value = this.inputs[key].value || (key === 'rr1' ? 1 : key === 'rr2' ? 1.5 : 2);
+        			this.displays[key].textContent = parseFloat(value).toFixed(1);
+    			});
+			}
 
             validateInputs() {
                 const values = {
@@ -485,9 +514,9 @@
                         entryPrice: parseFloat(this.inputs.entryPrice.value),
                         stopLoss: parseFloat(this.inputs.stopLoss.value),
                         maxLoss: parseFloat(this.inputs.maxLoss.value),
-                        rr1: parseFloat(this.inputs.rr1.value || 1.5),
-                        rr2: parseFloat(this.inputs.rr2.value || 2.0),
-                        rr3: parseFloat(this.inputs.rr3.value || 3.0)
+                        rr1: parseFloat(this.inputs.rr1.value || 1.0),
+                        rr2: parseFloat(this.inputs.rr2.value || 1.5),
+                        rr3: parseFloat(this.inputs.rr3.value || 2.0)
                     };
 
                     const positionSize = values.maxLoss / Math.abs(values.entryPrice - values.stopLoss);
