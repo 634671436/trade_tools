@@ -1,117 +1,471 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>以损定仓计算器</title>
+    <title>交易仓位计算器</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --error-color: #dc2626;
+            --success-color: #059669;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: #1a1a1a;
+        }
+
         .container {
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .container h1 {
+
+        .header {
             text-align: center;
-            font-size: 24px;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
         }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
         }
+
         .form-group input {
-            width: calc(100% - 20px);
-            padding: 8px;
-            margin: 0 auto;
-            display: block;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            font-size: 14px;
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .risk-reward-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .risk-reward-inputs .form-group {
+            margin-bottom: 0;
+        }
+
         .result {
-            margin-top: 20px;
-            padding: 10px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
         }
-        .result #positionAmount {
-            color: red;
-            font-weight: bold;
+
+        .result-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .result-value {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            color: var(--primary-color);
+            font-size: 0.875rem;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .risk-reward-inputs {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>以损定仓计算器</h1>
-
+        <div class="header">
+            <h1>交易仓位计算器</h1>
+            <p>基于风险管理的精确仓位计算工具</p>
+        </div>
+        
         <div class="form-group">
-            <label for="entryPrice">开单价 (USD):</label>
-            <input type="number" id="entryPrice" placeholder="请输入开单价">
+            <label for="entryPrice">
+                开仓价格 (USD)
+                <span class="tooltip">
+                    <span class="tooltip-icon">ⓘ</span>
+                    <span class="tooltip-text">请输入您计划的开仓价格</span>
+                </span>
+            </label>
+            <input type="number" id="entryPrice" placeholder="例如: 50000" step="any">
+            <div class="error" id="entryPriceError"></div>
         </div>
 
         <div class="form-group">
-            <label for="stopLoss">止损价 (USD):</label>
-            <input type="number" id="stopLoss" placeholder="请输入止损价">
+            <label for="stopLoss">
+                止损价格 (USD)
+                <span class="tooltip">
+                    <span class="tooltip-icon">ⓘ</span>
+                    <span class="tooltip-text">设置您的止损价位</span>
+                </span>
+            </label>
+            <input type="number" id="stopLoss" placeholder="例如: 49000" step="any">
+            <div class="error" id="stopLossError"></div>
         </div>
 
         <div class="form-group">
-            <label for="maxLoss">最大承受止损金额 (USD):</label>
-            <input type="number" id="maxLoss" placeholder="请输入最大承受止损金额">
+            <label for="maxLoss">
+                最大止损额 (USD)
+                <span class="tooltip">
+                    <span class="tooltip-icon">ⓘ</span>
+                    <span class="tooltip-text">设置您愿意承受的最大损失金额</span>
+                </span>
+            </label>
+            <input type="number" id="maxLoss" placeholder="例如: 1000" step="any">
+            <div class="error" id="maxLossError"></div>
+        </div>
+
+        <div class="risk-reward-inputs">
+            <div class="form-group">
+                <label for="rr1">
+                    盈亏比 1
+                    <span class="tooltip">
+                        <span class="tooltip-icon">ⓘ</span>
+                        <span class="tooltip-text">第一个止盈点的盈亏比</span>
+                    </span>
+                </label>
+                <input type="number" id="rr1" placeholder="例如: 1.5" step="0.1" value="1.5">
+            </div>
+            <div class="form-group">
+                <label for="rr2">
+                    盈亏比 2
+                    <span class="tooltip">
+                        <span class="tooltip-icon">ⓘ</span>
+                        <span class="tooltip-text">第二个止盈点的盈亏比</span>
+                    </span>
+                </label>
+                <input type="number" id="rr2" placeholder="例如: 2" step="0.1" value="2">
+            </div>
+            <div class="form-group">
+                <label for="rr3">
+                    盈亏比 3
+                    <span class="tooltip">
+                        <span class="tooltip-icon">ⓘ</span>
+                        <span class="tooltip-text">第三个止盈点的盈亏比</span>
+                    </span>
+                </label>
+                <input type="number" id="rr3" placeholder="例如: 3" step="0.1" value="3">
+            </div>
         </div>
 
         <div class="result">
-            <p>仓位数量 (币的数量): <span id="positionSize">-</span></p>
-            <p>仓位金额 (USD): <span id="positionAmount">-</span></p>
+            <div class="result-section">
+                <div class="section-title">仓位信息</div>
+                <div class="result-item">
+                    <span class="result-label">建议仓位数量</span>
+                    <span class="result-value" id="positionSize">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">仓位价值 (USD)</span>
+                    <span class="result-value" id="positionAmount">-</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="section-title">止盈价格</div>
+                <div class="result-item">
+                    <span class="result-label">止盈点 1 (RR: <span id="rr1Display">1.5</span>)</span>
+                    <span class="result-value" id="tp1">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">止盈点 2 (RR: <span id="rr2Display">2.0</span>)</span>
+                    <span class="result-value" id="tp2">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">止盈点 3 (RR: <span id="rr3Display">3.0</span>)</span>
+                    <span class="result-value" id="tp3">-</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const entryPriceInput = document.getElementById('entryPrice');
-        const stopLossInput = document.getElementById('stopLoss');
-        const maxLossInput = document.getElementById('maxLoss');
-
-        const positionSizeDisplay = document.getElementById('positionSize');
-        const positionAmountDisplay = document.getElementById('positionAmount');
-
-        function calculate() {
-            const entryPrice = parseFloat(entryPriceInput.value);
-            const stopLoss = parseFloat(stopLossInput.value);
-            const maxLoss = parseFloat(maxLossInput.value);
-
-            if (!entryPrice || !stopLoss || !maxLoss || entryPrice === stopLoss) {
-                positionSizeDisplay.textContent = '-';
-                positionAmountDisplay.textContent = '-';
-                return;
+		class PositionCalculator {
+            constructor() {
+                this.initializeElements();
+                this.initializeEventListeners();
+                // 初始化时执行一次计算
+                this.updateRRDisplays();
+                this.calculate();
             }
 
-            // 计算公式
+            initializeElements() {
+                // 基本输入元素
+                this.entryPriceInput = document.getElementById('entryPrice');
+                this.stopLossInput = document.getElementById('stopLoss');
+                this.maxLossInput = document.getElementById('maxLoss');
+                
+                // 盈亏比输入元素
+                this.rr1Input = document.getElementById('rr1');
+                this.rr2Input = document.getElementById('rr2');
+                this.rr3Input = document.getElementById('rr3');
+                
+                // 盈亏比显示元素
+                this.rr1Display = document.getElementById('rr1Display');
+                this.rr2Display = document.getElementById('rr2Display');
+                this.rr3Display = document.getElementById('rr3Display');
+                
+                // 结果显示元素
+                this.positionSizeDisplay = document.getElementById('positionSize');
+                this.positionAmountDisplay = document.getElementById('positionAmount');
+                this.tp1Display = document.getElementById('tp1');
+                this.tp2Display = document.getElementById('tp2');
+                this.tp3Display = document.getElementById('tp3');
+                
+                // 错误显示元素
+                this.errorElements = {
+                    entryPrice: document.getElementById('entryPriceError'),
+                    stopLoss: document.getElementById('stopLossError'),
+                    maxLoss: document.getElementById('maxLossError')
+                };
+            }
+
+            initializeEventListeners() {
+                const inputs = [
+                    'entryPrice', 'stopLoss', 'maxLoss',
+                    'rr1', 'rr2', 'rr3'
+                ];
+                
+                inputs.forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.updateRRDisplays();
+                        this.calculate();
+                    });
+                });
+            }
+
+            updateRRDisplays() {
+                // 确保即使输入为空也显示默认值
+                const rr1 = this.rr1Input.value || 1.5;
+                const rr2 = this.rr2Input.value || 2.0;
+                const rr3 = this.rr3Input.value || 3.0;
+
+                this.rr1Display.textContent = parseFloat(rr1).toFixed(1);
+                this.rr2Display.textContent = parseFloat(rr2).toFixed(1);
+                this.rr3Display.textContent = parseFloat(rr3).toFixed(1);
+            }
+
+            validateInputs() {
+                const entryPrice = parseFloat(this.entryPriceInput.value);
+                const stopLoss = parseFloat(this.stopLossInput.value);
+                const maxLoss = parseFloat(this.maxLossInput.value);
+
+                // 重置所有错误信息
+                Object.values(this.errorElements).forEach(el => el.textContent = '');
+
+                if (!entryPrice || entryPrice <= 0) {
+                    this.errorElements.entryPrice.textContent = '请输入有效的开仓价格';
+                    return false;
+                }
+
+                if (!stopLoss || stopLoss <= 0) {
+                    this.errorElements.stopLoss.textContent = '请输入有效的止损价格';
+                    return false;
+                }
+
+                if (!maxLoss || maxLoss <= 0) {
+                    this.errorElements.maxLoss.textContent = '请输入有效的最大止损金额';
+                    return false;
+                }
+
+                if (entryPrice === stopLoss) {
+                    this.errorElements.stopLoss.textContent = '止损价格不能等于开仓价格';
+                    return false;
+                }
+
+                return true;
+            }
+    calculateTakeProfit(entryPrice, stopLoss, riskRewardRatio) {
+        const riskAmount = Math.abs(entryPrice - stopLoss);
+        const profitAmount = riskAmount * riskRewardRatio;
+        
+        // 如果止损价格低于入场价格（做多），止盈价格应该高于入场价格
+        if (stopLoss < entryPrice) {
+            return entryPrice + profitAmount;
+        } 
+        // 如果止损价格高于入场价格（做空），止盈价格应该低于入场价格
+        else {
+            return entryPrice - profitAmount;
+        }
+    }
+
+    calculate() {
+        if (!this.validateInputs()) {
+            this.clearResults();
+            return;
+        }
+
+        const entryPrice = parseFloat(this.entryPriceInput.value);
+        const stopLoss = parseFloat(this.stopLossInput.value);
+        const maxLoss = parseFloat(this.maxLossInput.value);
+        const rr1 = parseFloat(this.rr1Input.value || 1.5);
+        const rr2 = parseFloat(this.rr2Input.value || 2.0);
+        const rr3 = parseFloat(this.rr3Input.value || 3.0);
+
+        try {
+            // 计算仓位大小
             const positionSize = maxLoss / Math.abs(entryPrice - stopLoss);
             const positionAmount = positionSize * entryPrice;
 
-            // 更新结果
-            positionSizeDisplay.textContent = positionSize.toFixed(8);
-            positionAmountDisplay.textContent = positionAmount.toFixed(8);
+            // 计算三个止盈点
+            const tp1 = this.calculateTakeProfit(entryPrice, stopLoss, rr1);
+            const tp2 = this.calculateTakeProfit(entryPrice, stopLoss, rr2);
+            const tp3 = this.calculateTakeProfit(entryPrice, stopLoss, rr3);
+
+            // 更新显示
+            this.updateResults(positionSize, positionAmount, tp1, tp2, tp3);
+        } catch (error) {
+            console.error('计算错误:', error);
+            this.clearResults();
         }
+    }
 
-        // 添加事件监听器
-        entryPriceInput.addEventListener('input', calculate);
-        stopLossInput.addEventListener('input', calculate);
-        maxLossInput.addEventListener('input', calculate);
-    </script>
-</body>
-</html>
+    updateResults(positionSize, positionAmount, tp1, tp2, tp3) {
+        this.positionSizeDisplay.textContent = this.formatNumber(positionSize);
+        this.positionAmountDisplay.textContent = this.formatNumber(positionAmount);
+        this.tp1Display.textContent = this.formatNumber(tp1);
+        this.tp2Display.textContent = this.formatNumber(tp2);
+        this.tp3Display.textContent = this.formatNumber(tp3);
+    }
 
+    clearResults() {
+        this.positionSizeDisplay.textContent = '-';
+        this.positionAmountDisplay.textContent = '-';
+        this.tp1Display.textContent = '-';
+        this.tp2Display.textContent = '-';
+        this.tp3Display.textContent = '-';
+    }
+
+    formatNumber(number) {
+        return new Intl.NumberFormat('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 8
+        }).format(number);
+    }
+}
+
+// 初始化计算器
+document.addEventListener('DOMContentLoaded', () => {
+    new PositionCalculator();
+});
+
+</script>
